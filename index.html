@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trials of Mastery</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        body {
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(45deg, #1a4040, #00ff4c);
+            color: white;
+            text-align: center;
+        }
+        .container {
+            border: 8px solid #ffcc00;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            background-color: #003300;
+        }
+        h1, h2, h3 {
+            margin-bottom: 20px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .input-box {
+            padding: 10px;
+            font-size: 1.2em;
+            width: 80%;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            background-color: #ffcc00;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #ff9900;
+        }
+        .timer-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: green;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            margin: 0 auto 20px;
+        }
+        .score-counter {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        .level-complete {
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+       .level-complete-content {
+    background-color: #003300;
+    border: 8px solid #00ff00;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+        }
+        .progress-indicator {
+            font-size: 0.8em;
+            margin-top: 15px;
+        }
+        /* Styles for added features */
+        .player-name {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #ffcc00;
+        }
+        .highest-score {
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            color: #ff9900;
+        }
+        .powerup-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+        }
+        .powerup-btn {
+            padding: 8px 10px;
+            font-size: 0.8em;
+            background-color: #00ff4c;
+            color: white;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .powerup-btn:hover:not(.disabled) {
+            background-color: #33ff66;
+        }
+        .powerup-btn.disabled {
+            background-color: #333;
+            color: #777;
+            border-color: #777;
+            cursor: not-allowed;
+        }
+        .welcome-container {
+            margin-bottom: 20px;
+        }
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        #start-screen-content {
+            font-size: 1.5em;
+            color: #ffcc00;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        /* New styles for the game image */
+        .game-image {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        /* Style for game over screen */
+        .game-over {
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+   .game-over-content {
+    background-color: #003300;
+    border: 8px solid #ff3300;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+    </style>
+</head>
+<body>
+    <!-- Start screen for audio initialization -->
+    <div id="start-screen">
+        <div id="start-screen-content">
+            Tap to start the adventure!
+        </div>
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="background-music" loop>
+        <source src="https://dl.dropboxusercontent.com/scl/fi/v3cof3kqwz4fozyclaeig/Press-Play-16-Bit-Arcade-No-Copyright-Music.mp3?rlkey=bpjsisstufv7om4pb954a8u2b&st=eu1qzs11" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <!-- Correct answer sound -->
+    <audio id="correct-sound">
+        <source src="https://dl.dropboxusercontent.com/scl/fi/rurdyi741m2lja9ccmxvj/Correct-Answer-Sound-Effect.mp3?rlkey=eiu254jzz26g4yqoita04ncb7&st=ke0lzb0x" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <!-- Incorrect answer sound -->
+    <audio id="incorrect-sound">
+        <source src="https://dl.dropboxusercontent.com/scl/fi/lqwt9s6ozvfzu7mxftdqv/Error-Sound-Effect-Non-copyright-sound-effects-TCW-22r.mp3?rlkey=6jvv4fhk9s4ftmb95k8vhgvqr&st=iijtqfb3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
+<!-- Victory sound -->
+<audio id="victory-sound">
+    <source src="https://dl.dropboxusercontent.com/scl/fi/9a0fdivef2xnnvfvdvn54/Tank-Stars-sound-effects-Victory.mp3?rlkey=skrmv6h5775rp69yfo6oz2ehy&st=24xclakc" type="audio/mp3">
+    Your browser does not support the audio element.
+</audio>
+    
+    <div class="container">
+        <!-- Game image - only visible on start screen -->
+        <img id="game-header-image" class="game-image" src="https://i.postimg.cc/JzFDW597/068ea439b0218fdd52c1434444600b23.png" alt="Trials of Mastery">
+        
+        <h1>Trials of Mastery</h1>
+        <p>Prove your skills and master the trials. Will you succeed?</p>
+        
+        <!-- Player name input section -->
+        <div id="player-setup">
+            <input type="text" class="input-box" id="player-name-input" placeholder="Enter your name...">
+            <div class="highest-score">Highest Score: <span id="highest-score">0</span></div>
+        </div>
+        
+        <button id="start-btn" class="btn">START</button>
+
+        <div id="game" class="hidden">
+            <!-- Welcome message with player name -->
+            <div class="player-name">Good luck, <span id="player-name-display">Player</span>!</div>
+            
+            <h2 id="level-title">Awakening</h2>
+            <div class="timer-circle" id="timer">60</div>
+            <div class="score-counter">Score: <span id="score">0</span></div>
+            <div class="progress-indicator">Word <span id="current-word-num">1</span>/10</div>
+            <h3 id="word-to-translate">Word</h3>
+            <input type="text" class="input-box" id="answer" placeholder="Enter translation...">
+            
+            <!-- Power-up buttons -->
+            <div class="powerup-container">
+                <button id="bonus-time-btn" class="powerup-btn">Bonus Time (+10s)</button>
+                <button id="skip-word-btn" class="powerup-btn">Skip Word</button>
+            </div>
+            
+            <button id="submit-btn" class="btn">SUBMIT</button>
+            <p id="feedback"></p>
+        </div>
+    </div>
+
+    <div id="level-complete" class="level-complete hidden">
+        <div class="level-complete-content">
+            <h2>Trial Completed!</h2>
+            <p>You have mastered this level.</p>
+            <p>Score: <span id="level-score">0</span></p>
+            <button id="next-level-btn" class="btn">NEXT TRIAL</button>
+        </div>
+    </div>
+
+    <!-- Game Over screen -->
+    <div id="game-over" class="game-over hidden">
+        <div class="game-over-content">
+            <h2>GAME OVER</h2>
+            <p>Too many mistakes!</p>
+            <p>Your score: <span id="final-score">0</span></p>
+            <button id="try-again-btn" class="btn">TRY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        // Variable for music
+        let backgroundMusic;
+        let correctSound;
+        let incorrectSound;
+        let musicEnabled = true;
+        
+        // Initialize background music
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('level-complete').classList.add('hidden');
+            document.getElementById('game-over').classList.add('hidden');
+            
+            // Load highest score from localStorage
+            const highestScore = localStorage.getItem('highestScore') || 0;
+            document.getElementById('highest-score').textContent = highestScore;
+            
+            // Initialize background music
+            backgroundMusic = document.getElementById('background-music');
+            correctSound = document.getElementById('correct-sound');
+            incorrectSound = document.getElementById('incorrect-sound');
+	    victorySound = document.getElementById('victory-sound');
+            
+            // Add event for start screen to initialize music
+            document.getElementById('start-screen').addEventListener('click', function() {
+                // Hide start screen
+                this.style.display = 'none';
+                
+                // Play music
+                backgroundMusic.play()
+                    .then(() => console.log('Music started successfully'))
+                    .catch(e => console.log('Error playing music:', e));
+            });
+        });
+        
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('submit-btn').addEventListener('click', checkAnswer);
+        document.getElementById('next-level-btn').addEventListener('click', loadNextLevel);
+        document.getElementById('answer').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+        document.getElementById('try-again-btn').addEventListener('click', tryAgain);
+        
+        // Events for power-up buttons
+        document.getElementById('bonus-time-btn').addEventListener('click', addBonusTime);
+        document.getElementById('skip-word-btn').addEventListener('click', skipWord);
+
+        const levels = [
+            { 
+  name: 'Awakening', 
+  time: 60, 
+  words: {
+    'wake up': ['despertarse'],
+    'get up': ['levantarse'],
+    'go to school': ['ir a la escuela'],
+    'have breakfast': ['desayunar'],
+    'brush my teeth': ['cepillar mis dientes'],
+    'go to bed': ['acostarse', 'ir a la cama'],
+    'watch TV': ['ver televisión'],
+    'play': ['jugar'],
+    'sleep': ['dormir'],
+    'study': ['estudiar'],
+    'mom': ['mamá'],
+    'before': ['antes'],
+    'after': ['después'],
+    'eat out': ['comer por fuera'],
+    'go out': ['salir'],
+    'subject': ['materia', 'asignatura'],
+    'go for a walk': ['ir a caminar', 'dar un paseo'],
+    'live': ['vivir'],
+    'drink': ['beber', 'tomar'],
+    'like': ['gustar'],
+    'love': ['amar', 'encantar', 'amor'],
+    'never': ['nunca'],
+    'always': ['siempre'],
+    'often': ['a menudo', 'frecuentemente'],
+    'sometimes': ['a veces'],
+    'monday': ['lunes'],
+    'tuesday': ['martes'],
+    'wednesday': ['miércoles'],
+    'thursday': ['jueves'],
+    'friday': ['viernes']
+  } 
+},
+           { 
+  name: 'Runes', 
+  time: 60, 
+  words: {
+    'take a shower': ['ducharse', 'tomar una ducha'],
+    'start school': ['comenzar clases', 'empezar la escuela'],
+    'get home': ['llegar a casa'],
+    'do homework': ['hacer tareas'],
+    'play with friends': ['jugar con amigos'],
+    'play videogames': ['jugar videojuegos'],
+    'go to work': ['ir al trabajo'],
+    'have lunch': ['almorzar'],
+    'have dinner': ['cenar'],
+    'rest': ['descansar'],
+    'cook': ['cocinar'],
+    'read books': ['leer libros'],
+    'bedtime': ['hora de dormir'],
+    'store': ['tienda', 'almacén'],
+    'close': ['cerrar'],
+    'parents': ['padres'],
+    'every day': ['todos los días', 'cada día'],
+    'in the morning': ['en la mañana'],
+    'in the afternoon': ['en la tarde'],
+    'in the evening': ['en la noche', 'en la tarde noche'],
+    'at night': ['en la noche'],
+    'late': ['tarde'],
+    'early': ['temprano'],
+    'usually': ['usualmente', 'normalmente'],
+    'go shopping': ['ir de compras'],
+    'learn': ['aprender'],
+    'saturday': ['sábado'],
+    'sunday': ['domingo'],
+    'on weekends': ['los fines de semana'],
+    'then': ['entonces', 'luego']
+  } 
+},
+            { 
+  name: 'Adept', 
+  time: 55, 
+  words: {
+    'leave home': ['salir de casa'],
+    'start work': ['comenzar a trabajar'],
+    'finish school': ['terminar la escuela', 'terminar clases'],
+    'go for a drink': ['salir a tomar algo'],
+    'have coffee with friends': ['tomar café con amigos'],
+    'hang out with friends': ['salir con amigos', 'pasar el rato con amigos'],
+    'stay in': ['quedarse en casa'],
+    'visit': ['visitar'],
+    'watch videos on tiktok': ['ver videos en tiktok'],
+    'free time': ['tiempo libre'],
+    'at about': ['aproximadamente a las', 'alrededor de las'],
+    'at midnight': ['a la medianoche'],
+    'in the week': ['entre semana', 'en la semana'],
+    'seldom': ['pocas veces'],
+    'rarely': ['raramente'],
+    'hardly ever': ['casi nunca'],
+    'a lot': ['mucho'],
+    'soccer': ['fútbol'],
+    'at the same time': ['al mismo tiempo'],
+    'every': ['cada', 'todos'],
+    'together': ['juntos'],
+    'while': ['mientras'],
+    'rain': ['llover', 'lluvia'],
+    'summer': ['verano'],
+    'winter': ['invierno'],
+    'for a while': ['por un rato', 'durante un rato'],
+    'play sports': ['practicar deportes', 'jugar deportes'],
+    'store': ['tienda'],
+    'subject': ['materia', 'asignatura']
+  } 
+},
+           { 
+  name: 'Guardian', 
+  time: 50, 
+  words: {
+    'despertarse': ['wake up'],
+    'levantarse': ['get up'],
+    'ir a la escuela': ['go to school'],
+    'desayunar': ['have breakfast'],
+    'mamá': ['mom'],
+    'estudiar': ['study'],
+    'dormir': ['sleep'],
+    'jugar': ['play'],
+    'ver televisión': ['watch TV'],
+    'beber': ['drink'],
+    'gustar': ['like'],
+    'amar': ['love'],
+    'lunes': ['monday'],
+    'martes': ['tuesday'],
+    'miércoles': ['wednesday'],
+    'jueves': ['thursday'],
+    'viernes': ['friday'],
+    'escuela': ['school'],
+    'hacer tareas': ['do homework'],
+    'leer libros': ['read books'],
+    'nunca': ['never'],
+    'siempre': ['always'],
+    'a menudo': ['often'],
+    'a veces': ['sometimes'],
+    'caminar': ['walk'],
+    'vivir': ['live'],
+    'cenar': ['have dinner'],
+    'temprano': ['early'],
+    'tarde': ['late'],
+    'mucho': ['a lot']
+  } 
+},
+            { 
+  name: 'Spells', 
+  time: 45, 
+  words: {
+    'tomar una ducha': ['take a shower'],
+    'cepillarme los dientes': ['brush my teeth'],
+    'llegar a casa': ['get home'],
+    'almorzar': ['have lunch'],
+    'salir con amigos': ['hang out with friends'],
+    'hacer tareas': ['do homework'],
+    'jugar videojuegos': ['play videogames'],
+    'cenar': ['have dinner'],
+    'ver videos en tiktok': ['watch videos on tiktok'],
+    'quedarse en casa': ['stay in'],
+    'ir de compras': ['go shopping'],
+    'cocinar': ['cook'],
+    'tiempo libre': ['free time'],
+    'hora de dormir': ['bedtime'],
+    'tienda': ['store'],
+    'padres': ['parents'],
+    'todos los días': ['every day'],
+    'juntos': ['together'],
+    'mientras': ['while'],
+    'luego': ['then'],
+    'en la noche': ['at night'],
+    'en la tarde': ['in the afternoon'],
+    'en la mañana': ['in the morning'],
+    'los fines de semana': ['on weekends'],
+    'domingo': ['sunday'],
+    'sábado': ['saturday'],
+    'aprender': ['learn'],
+    'descansar': ['rest'],
+    'visitar': ['visit'],
+    'por un rato': ['for a while']
+  } 
+},
+            { 
+  name: 'Master', 
+  time: 40, 
+  words: {
+    'salir a tomar algo': ['go for a drink'],
+    'tomar café con amigos': ['have coffee with friends'],
+    'pasar el rato con amigos': ['hang out with friends'],
+    'quedarse en casa': ['stay in'],
+    'salir a comer': ['eat out'],
+    'alrededor de las': ['at about'],
+    'a medianoche': ['at midnight'],
+    'en la semana': ['in the week'],
+    'pocas veces': ['seldom'],
+    'casi nunca': ['hardly ever'],
+    'raramente': ['rarely'],
+    'mucho': ['a lot'],
+    'fútbol': ['soccer'],
+    'materia': ['subject'],
+    'al mismo tiempo': ['at the same time'],
+    'todos': ['every'],
+    'antes': ['before'],
+    'después': ['after'],
+    'verano': ['summer'],
+    'invierno': ['winter'],
+    'llover': ['rain'],
+    'al mediodía': ['at noon'],
+    'salir a caminar': ['go for a walk'],
+    'ver televisión': ['watch TV'],
+    'cepillar mis dientes': ['brush my teeth'],
+    'ducharse': ['take a shower'],
+    'fin de semana': ['weekend'],
+    'practicar deportes': ['play sports'],
+    'ir a trabajar': ['go to work']
+  } 
+},
+            { 
+  name: 'Elder', 
+  time: 35, 
+  words: {
+    // 🔹 Inglés → Español
+    'seldom': ['pocas veces'],
+    'hardly ever': ['casi nunca'],
+    'have coffee with friends': ['tomar café con amigos'],
+    'go for a drink': ['salir a tomar algo'],
+    'watch videos on tiktok': ['ver videos en tiktok'],
+
+    // 🔸 Español → Inglés
+    'alrededor de las': ['at about'],
+    'pasar el rato con amigos': ['hang out with friends'],
+    'en la semana': ['in the week'],
+    'materia': ['subject'],
+    'por un rato': ['for a while']
+  } 
+},
+        ];
+
+        let currentLevel = 0;
+        let score = 0;
+        let levelScore = 0;
+        let timeLeft;
+        let timerInterval;
+        let currentWord = '';
+        let selectedWords = [];
+        let wordIndex = 0;
+        
+        // Variables for power-ups
+        let bonusTimeUsed = false;
+        let skipWordUsed = false;
+        
+        // Variable for tracking errors
+        let errorCount = 0;
+        
+        function startGame() {
+            // Hide the game image when starting the game
+            document.getElementById('game-header-image').classList.add('hidden');
+            
+            // Stop music when game starts
+            if (backgroundMusic && musicEnabled) {
+                backgroundMusic.pause();
+            }
+            
+            // Get player name
+            const playerName = document.getElementById('player-name-input').value.trim() || 'Player';
+            document.getElementById('player-name-display').textContent = playerName;
+            
+            currentLevel = 0;
+            score = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('player-setup').classList.add('hidden');
+            document.getElementById('start-btn').classList.add('hidden');
+            document.getElementById('game').classList.remove('hidden');
+            document.getElementById('level-complete').classList.add('hidden'); // Ensure level-complete is hidden
+            document.getElementById('game-over').classList.add('hidden'); // Ensure game-over is hidden
+            
+            // Reset power-ups
+            resetPowerups();
+            
+            // Reset error count
+            errorCount = 0;
+            
+            loadLevel();
+        }
+
+        function loadLevel() {
+            levelScore = 0;
+            wordIndex = 0;
+            
+            // Reset power-ups for each level
+            resetPowerups();
+            
+            // Reset error count for each level
+            errorCount = 0;
+            
+            const level = levels[currentLevel];
+            document.getElementById('level-title').textContent = level.name;
+            timeLeft = level.time;
+            updateTimer();
+            
+            // Select 10 random words without repetition
+            const allWords = Object.keys(level.words);
+            selectedWords = [];
+            
+            // If we have less than 15 words, use all available (except Elder level)
+const wordsToSelect = Math.min(10, allWords.length);
+            
+            // Fisher-Yates shuffle algorithm
+            const shuffled = [...allWords];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            
+            selectedWords = shuffled.slice(0, wordsToSelect);
+
+
+            
+            nextWord();
+            startTimer();
+            updateWordCounter();
+        }
+
+        function loadNextLevel() {
+            currentLevel++;
+            if (currentLevel < levels.length) {
+                document.getElementById('level-complete').classList.add('hidden');
+                loadLevel();
+            } else {
+                // Game completed
+                updateHighestScore();
+                alert('Congratulations! You have mastered all the trials! Final score: ' + score);
+                document.getElementById('level-complete').classList.add('hidden');
+                document.getElementById('game').classList.add('hidden');
+                document.getElementById('player-setup').classList.remove('hidden');
+                document.getElementById('start-btn').classList.remove('hidden');
+                
+                // Show the game image again when returning to start screen
+                document.getElementById('game-header-image').classList.remove('hidden');
+                
+                // Play music again when returning to start screen
+                if (backgroundMusic && musicEnabled) {
+                    backgroundMusic.play().catch(e => console.log('Error playing music:', e));
+                }
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) gameOver();
+            }, 1000);
+        }
+
+        function updateTimer() {
+            const timerCircle = document.getElementById('timer');
+            timerCircle.textContent = timeLeft;
+            timerCircle.style.backgroundColor = timeLeft <= 5 ? 'red' : timeLeft <= 30 ? 'yellow' : 'green';
+        }
+
+        function nextWord() {
+            if (wordIndex < selectedWords.length) {
+                currentWord = selectedWords[wordIndex];
+                document.getElementById('word-to-translate').textContent = currentWord;
+                document.getElementById('feedback').textContent = '';
+                updateWordCounter();
+            } else {
+                // Level completed
+                levelComplete();
+            }
+        }
+
+        function updateWordCounter() {
+            document.getElementById('current-word-num').textContent = wordIndex + 1;
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim().toLowerCase();
+            const correctAnswers = levels[currentLevel].words[currentWord];
+            
+            if (correctAnswers.includes(userAnswer)) {
+                score++;
+                levelScore++;
+                document.getElementById('score').textContent = score;
+                document.getElementById('feedback').textContent = 'Correct!';
+                document.getElementById('feedback').style.color = '#00ff00';
+                wordIndex++; // Advance to next word only on correct answer
+                document.getElementById('answer').value = '';
+                
+                // Play correct sound
+                correctSound.currentTime = 0;
+                correctSound.play()
+                    .catch(e => console.log('Error playing correct sound:', e));
+                
+                // Reset error count on correct answer
+                errorCount = 0;
+                
+                // Short delay before next word
+                setTimeout(() => {
+                    nextWord();
+                }, 500);
+            } else {
+                // Increment error count
+                errorCount++;
+                
+                // Show "Incorrect:" along with the correct answer
+                const correctAnswerText = correctAnswers.join(', ');
+                document.getElementById('feedback').textContent = 'Incorrect: ' + correctAnswerText;
+                document.getElementById('feedback').style.color = '#ff0000';
+                
+                // Play incorrect sound
+                incorrectSound.currentTime = 0;
+                incorrectSound.play()
+                    .catch(e => console.log('Error playing incorrect sound:', e));
+                
+                // Check if reached max errors (4)
+                if (errorCount >= 4) {
+                    // Game Over due to too many errors
+                    showGameOver();
+                    return;
+                }
+                
+                // Disable submit button and input field for 3 seconds
+                document.getElementById('submit-btn').disabled = true;
+                document.getElementById('answer').disabled = true;
+                
+                // After 3 seconds, show a different word without advancing the counter
+                setTimeout(() => {
+                    document.getElementById('submit-btn').disabled = false;
+                    document.getElementById('answer').disabled = false;
+                    document.getElementById('answer').value = '';
+                    
+                    // Show a different random word without changing the wordIndex
+                    showDifferentWord();
+                }, 3000);
+            }
+        }
+
+        function levelComplete() {
+            clearInterval(timerInterval);
+            document.getElementById('level-score').textContent = levelScore;
+            document.getElementById('level-complete').classList.remove('hidden');
+    // Reproducir sonido de victoria
+    if (victorySound) {
+        victorySound.currentTime = 0;
+        victorySound.play().catch(e => console.log('Error playing victory sound:', e));
+    }
+        }
+
+        function gameOver() {
+            clearInterval(timerInterval);
+            updateHighestScore();
+            alert('Time is up! Your score: ' + score);
+            document.getElementById('player-setup').classList.remove('hidden');
+            document.getElementById('start-btn').classList.remove('hidden');
+            document.getElementById('game').classList.add('hidden');
+            
+            // Show the game image again when returning to start screen
+            document.getElementById('game-header-image').classList.remove('hidden');
+            
+            // Play music again when returning to start screen
+            if (backgroundMusic && musicEnabled) {
+                backgroundMusic.play().catch(e => console.log('Error playing music:', e));
+            }
+        }
+        
+        // Function to show game over screen after 4 errors
+        function showGameOver() {
+            clearInterval(timerInterval);
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('game-over').classList.remove('hidden');
+            
+            // Play incorrect sound to emphasize game over
+            incorrectSound.currentTime = 0;
+            incorrectSound.play()
+                .catch(e => console.log('Error playing sound on game over:', e));
+        }
+        
+        // Function for try again button
+        function tryAgain() {
+            document.getElementById('game-over').classList.add('hidden');
+            startGame();
+        }
+        
+        // Add this function to show a different random word without advancing the counter
+        function showDifferentWord() {
+            // Get the current level's words
+            const level = levels[currentLevel];
+            const allWords = Object.keys(level.words);
+            
+            // Get words that are not the current word
+            const otherWords = allWords.filter(word => word !== currentWord);
+            
+            // If there are other words available, pick a random one
+            if (otherWords.length > 0) {
+                const randomIndex = Math.floor(Math.random() * otherWords.length);
+                const randomWord = otherWords[randomIndex];
+                
+                // Set the new current word
+                currentWord = randomWord;
+                
+                // Update the display
+                document.getElementById('word-to-translate').textContent = currentWord;
+            }
+            // If no other words available, we'll just keep the current word
+        }
+        function addBonusTime() {
+            if (!bonusTimeUsed) {
+                timeLeft += 10;
+                updateTimer();
+                bonusTimeUsed = true;
+                document.getElementById('bonus-time-btn').classList.add('disabled');
+                
+                // Play a sound when adding time (using correct sound for feedback)
+                correctSound.currentTime = 0;
+                correctSound.play()
+                    .catch(e => console.log('Error playing sound on time bonus:', e));
+            }
+        }
+        
+        function skipWord() {
+            if (!skipWordUsed) {
+                wordIndex++;
+                document.getElementById('answer').value = '';
+                skipWordUsed = true;
+                document.getElementById('skip-word-btn').classList.add('disabled');
+                
+                // Play a sound when skipping (using correct sound for feedback)
+                correctSound.currentTime = 0;
+                correctSound.play()
+                    .catch(e => console.log('Error playing sound on skip:', e));
+                
+                nextWord();
+            }
+        }
+        
+        function resetPowerups() {
+            bonusTimeUsed = false;
+            skipWordUsed = false;
+            document.getElementById('bonus-time-btn').classList.remove('disabled');
+            document.getElementById('skip-word-btn').classList.remove('disabled');
+        }
+        
+        // Function to update highest score
+        function updateHighestScore() {
+            const currentHighest = localStorage.getItem('highestScore') || 0;
+            if (score > currentHighest) {
+                localStorage.setItem('highestScore', score);
+                document.getElementById('highest-score').textContent = score;
+            }
+        }
+    </script>
+</body>
+</html>
